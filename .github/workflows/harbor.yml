@@ -1,0 +1,75 @@
+name: harbor
+
+on:
+  push:
+    branches: main
+    paths:
+      - 'latest/**'
+      - '.github/workflows/harbor.yml'
+  schedule:
+    # Weekly rebuild: the upstream rocker geospatial base is rebuilt weekly
+    # and the agent CLIs (claude/codex/opencode/agy/ccr) release continuously
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      context:
+        description: 'Build context directory (e.g., latest)'
+        required: false
+        default: 'latest'
+        type: string
+      tag:
+        description: 'Docker image tag to build'
+        required: false
+        default: 'latest'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # The rocker geospatial base + Go/agent layers exceed the
+      # runner's ~14-20 GB free disk; reclaim ~25-30 GB before building
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: harbor.cyverse.org
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      # GHA cache quota is 10 GB/repo and the weekly base-image drift
+      # invalidates most layers anyway; mode=min keeps only final-image
+      # layers so config-only rebuilds within a week stay fast
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context || 'latest' }}
+          file: ${{ inputs.context || 'latest' }}/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/amd64
+          push: true
+          tags: harbor.cyverse.org/vice/mesa-rstudio:${{ inputs.tag || 'latest' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}

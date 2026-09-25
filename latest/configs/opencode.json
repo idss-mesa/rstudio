@@ -1,0 +1,54 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "aiverde/js2/gpt-oss-120b",
+  "provider": {
+    "aiverde": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "CyVerse AI Verde",
+      "options": {
+        "baseURL": "https://llm-api.cyverse.ai/v1",
+        "apiKey": "{env:LLM_API_KEY}"
+      },
+      "models": {
+        "js2/gpt-oss-120b": { "name": "gpt-oss-120b (Jetstream2)" },
+        "nrp/gpt-oss": { "name": "gpt-oss (NRP)" },
+        "nrp/glm-5": { "name": "GLM-5 (NRP)" },
+        "nrp/glm-4.7": { "name": "GLM-4.7 (NRP)" },
+        "nrp/qwen3": { "name": "Qwen3 (NRP)" },
+        "nrp/qwen3-small": { "name": "Qwen3 small (NRP)" },
+        "nrp/kimi": { "name": "Kimi (NRP)" },
+        "nrp/gemma": { "name": "Gemma (NRP)" },
+        "nrp/minimax-m2": { "name": "MiniMax-M2 (NRP)" },
+        "phi-4-multimodal-instruct": { "name": "Phi-4 multimodal" }
+      }
+    }
+  },
+  "mcp": {
+    "irods": {
+      "type": "remote",
+      "url": "https://mcp-public.cyverse.ai/mcp",
+      "enabled": true,
+      "oauth": false
+    },
+    "mesa": {
+      "type": "local",
+      "command": ["/usr/local/bin/mesa-mcp"],
+      "enabled": true,
+      "environment": {
+        "MESA_MCP_IRODS__HOST": "data.cyverse.org",
+        "MESA_MCP_IRODS__PORT": "1247",
+        "MESA_MCP_IRODS__ZONE": "iplant"
+      }
+    },
+    "formation": {
+      "type": "remote",
+      "url": "https://de.cyverse.org/formation/mcp",
+      "enabled": true
+    },
+    "filesystem": {
+      "type": "local",
+      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/home/rstudio", "/home/rstudio/data-store"],
+      "enabled": true
+    }
+  }
+}

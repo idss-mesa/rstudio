@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "irods": {
+      "type": "http",
+      "url": "https://mcp-public.cyverse.ai/mcp"
+    },
+    "irods-auth": {
+      "type": "http",
+      "url": "https://mcp.cyverse.ai/mcp",
+      "oauth": {
+        "clientId": "mcp-client",
+        "callbackPort": 8990
+      }
+    },
+    "mesa": {
+      "type": "stdio",
+      "command": "/usr/local/bin/mesa-mcp",
+      "args": [],
+      "env": {
+        "MESA_MCP_IRODS__HOST": "data.cyverse.org",
+        "MESA_MCP_IRODS__PORT": "1247",
+        "MESA_MCP_IRODS__ZONE": "iplant"
+      }
+    },
+    "formation": {
+      "type": "http",
+      "url": "https://de.cyverse.org/formation/mcp"
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/rstudio", "/home/rstudio/data-store"],
+      "env": {}
+    }
+  }
+}

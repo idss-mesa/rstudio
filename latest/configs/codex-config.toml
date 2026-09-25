@@ -1,0 +1,40 @@
+# Codex CLI configuration — pre-loaded MESA MCP servers.
+#
+# Codex is NOT wired to CyVerse AI Verde: Codex 0.144+ removed the Chat
+# Completions wire protocol (wire_api = "chat"), and AI Verde is a chat-only
+# (LiteLLM) gateway that does not serve Codex's required Responses API. See
+# https://github.com/openai/codex/discussions/7782. Codex therefore runs on
+# its own OpenAI authentication. For AI Verde models, use OpenCode or Claude
+# Code (via ccr) — both configured by `aiverde-setup`.
+
+[mcp_servers.irods]
+command = "/usr/local/bin/irods-mcp-server"
+args = []
+
+[mcp_servers.irods.env]
+IRODS_HOST = "data.cyverse.org"
+IRODS_PORT = "1247"
+IRODS_ZONE_NAME = "iplant"
+IRODS_MCP_SVR_IRODS_SHARED_DIR_NAME = "shared"
+
+[mcp_servers.mesa]
+command = "/usr/local/bin/mesa-mcp"
+args = []
+
+[mcp_servers.mesa.env]
+MESA_MCP_IRODS__HOST = "data.cyverse.org"
+MESA_MCP_IRODS__PORT = "1247"
+MESA_MCP_IRODS__ZONE = "iplant"
+
+# formation (CyVerse Discovery Environment — launch apps, manage analyses) is a
+# hosted, OAuth-protected remote MCP at https://de.cyverse.org/formation/mcp
+# (CyVerse/Keycloak authorization-code + PKCE). Codex 0.144+ speaks streamable
+# HTTP and detects the OAuth support automatically — authenticate with
+# `codex mcp login formation` (opens a CyVerse browser login).
+[mcp_servers.formation]
+url = "https://de.cyverse.org/formation/mcp"
+oauth_resource = "https://de.cyverse.org/formation/mcp"
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/home/rstudio", "/home/rstudio/data-store"]
