@@ -34,10 +34,13 @@ These live in the Discovery Environment, not in this repo, and must match the im
 
 | Setting | Value |
 | --- | --- |
-| DE app | **MESA RStudio Geospatial** (`0eea0f10-b92c-11f1-9c79-008cfa5ae3e1`) |
-| DE tool | `mesa-rstudio` (`ff0aa2b2-b92b-11f1-8020-008cfa5ae3e1`) |
+| DE app | **MESA RStudio Geospatial** (`01667dd8-b936-11f1-b923-008cfa5ae3e1`) |
+| DE tool (version `1.0.0`) | `mesa-rstudio` (`e2dbec04-b935-11f1-ac49-008cfa5ae3e1`) |
 | Image | `harbor.cyverse.org/vice/mesa-rstudio:latest` |
-| Type | interactive |
+| Type | interactive (`interactive: true`) |
+| Network mode | `bridge` (Terrain's default `none` gives an analysis that runs but never serves) |
+| Skip /tmp mount | `true` (VNC/X and IPC sockets live in /tmp) |
+| VICE proxy | `interactive_apps` = cas-proxy (`discoenv/cas-proxy`), as on the featured apps |
 | Container port | **80** |
 | Working directory | `/home/rstudio/data-store` (the Data Store CSI mount point; must match the Dockerfile `WORKDIR`) |
 | UID | 1000 |
