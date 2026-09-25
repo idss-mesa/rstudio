@@ -28,6 +28,25 @@ docker run --rm -p 8787:80 -e IPLANT_USER=$USER -e REDIRECT_URL=http://localhost
 
 Then open <http://localhost:8787>. In VICE, register the tool on port **80**. `REDIRECT_URL` only matters locally, for nginx redirect rewriting.
 
+## DE tool settings
+
+These live in the Discovery Environment, not in this repo, and must match the image. Change them only together with the Dockerfile.
+
+| Setting | Value |
+| --- | --- |
+| DE app | **MESA RStudio Geospatial** (`0eea0f10-b92c-11f1-9c79-008cfa5ae3e1`) |
+| DE tool | `mesa-rstudio` (`ff0aa2b2-b92b-11f1-8020-008cfa5ae3e1`) |
+| Image | `harbor.cyverse.org/vice/mesa-rstudio:latest` |
+| Type | interactive |
+| Container port | **80** |
+| Working directory | `/home/rstudio/data-store` (the Data Store CSI mount point; must match the Dockerfile `WORKDIR`) |
+| UID | 1000 |
+| Entrypoint override | none (the image's own startup script does the MESA per-user setup) |
+| Max CPU | 128 cores (upstream `vice/rstudio/geospatial`) |
+| Memory limit | 16 GiB (DE user cap; upstream 250 GiB) |
+
+Port **80** is nginx, which proxies to rserver on `127.0.0.1:8787`. Registering 8787 would bypass nginx and fail.
+
 ## Sign in to CyVerse
 
 ```bash
