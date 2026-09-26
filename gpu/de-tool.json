@@ -1,0 +1,55 @@
+{
+  "tools": [
+    {
+      "name": "mesa-rstudio-gpu",
+      "version": "1.0.0",
+      "description": "MESA RStudio Geospatial on an NVIDIA GPU: Rocker geospatial RStudio Server with CUDA R torch (luz, torchvision, tabnet, brulee), GPU xgboost, Ollama local LLMs (ollamar, ellmer, mall), agentic AI CLIs and MESA MCP servers",
+      "type": "interactive",
+      "interactive": true,
+      "restricted": false,
+      "implementation": {
+        "implementor": "MESA / CyVerse",
+        "implementor_email": "<email>",
+        "test": {
+          "input_files": [],
+          "output_files": []
+        }
+      },
+      "container": {
+        "image": {
+          "name": "harbor.cyverse.org/vice/mesa-rstudio",
+          "tag": "gpu"
+        },
+        "network_mode": "bridge",
+        "working_directory": "/home/rstudio/data-store",
+        "uid": 1000,
+        "skip_tmp_mount": true,
+        "pids_limit": 1024,
+        "min_cpu_cores": 4,
+        "max_cpu_cores": 8,
+        "min_memory_limit": 17179869184,
+        "memory_limit": 34359738368,
+        "min_gpus": 1,
+        "max_gpus": 1,
+        "gpu_models": ["NVIDIA-A16"],
+        "container_ports": [
+          {
+            "container_port": 80
+          }
+        ],
+        "container_devices": [
+          {
+            "host_path": "/dev/shm",
+            "container_path": "4Gi"
+          }
+        ],
+        "interactive_apps": {
+          "name": "cas-proxy",
+          "image": "discoenv/cas-proxy",
+          "cas_url": "https://olson.cyverse.org/cas",
+          "cas_validate": "validate"
+        }
+      }
+    }
+  ]
+}
