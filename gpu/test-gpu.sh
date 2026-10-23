@@ -372,6 +372,13 @@ check "T6 Ollama as rstudio + gpu-check" "$LOG_DIR/t6-root.log" "see log" -- roo
 [ "${STATUS[-1]}" = pass ] && DETAILS[-1]="ollama serve runs as rstudio; mesa-gpu-check $(sed 's/\x1b\[[0-9;]*m//g' "$LOG_DIR/t6-root.log" | grep 'Summary' | sed 's/== Summary: //')"
 
 # ---------------------------------------------------------------------------
+say "T7 MESA MCP stack"
+# MESA MCP stack: /opt/mesa imports mesa-mcp + mesa-ducklake on DuckDB 2.x (catalogs it writes are DuckDB 2-only)
+mesa_stack() { docker run --rm --entrypoint /opt/mesa/bin/python "$IMAGE" -c "import duckdb, mesa_mcp, mesa_ducklake; from importlib.metadata import version as v; assert duckdb.__version__.startswith('2.'), 'duckdb ' + duckdb.__version__; print('mesa-mcp', v('mesa-mcp'), 'mesa-ducklake', v('mesa-ducklake'), 'duckdb', duckdb.__version__)"; }
+check "T7 mesa-mcp DuckDB 2" "$LOG_DIR/t7-mesa-stack.log" "see log" -- mesa_stack
+[ "${STATUS[-1]}" = pass ] && DETAILS[-1]=$(last_line "$LOG_DIR/t7-mesa-stack.log")
+
+# ---------------------------------------------------------------------------
 say "Results ($IMAGE, GPU=$GPU)"
 fails=0 skips=0
 printf '%-40s %-6s %s\n' TEST RESULT DETAIL
