@@ -84,10 +84,17 @@ RUN curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/a
 
 # mesa-mcp and mesa-ducklake in a dedicated venv (cyverse-login uses
 # /opt/mesa/bin/python3 for iRODS password obfuscation)
+# Pinned to release tags: DuckDB 2.0 (mesa-ducklake >= 0.2) writes catalogs
+# DuckDB 1.x cannot open, and a changed ref also invalidates this layer's cache.
+# The [ducklake] extra enforces mesa-mcp's mesa-ducklake>=0.2 floor; the
+# assertion fails the build if the venv Python or DuckDB is too old.
+ARG MESA_DUCKLAKE_REF=v0.2.0
+ARG MESA_MCP_REF=v0.2.0
 RUN /usr/bin/python3 -m venv /opt/mesa && \
     /opt/mesa/bin/pip install --no-cache-dir \
-      git+https://github.com/idss-mesa/mesa-ducklake.git \
-      git+https://github.com/idss-mesa/mesa-mcp.git && \
+      "mesa-ducklake @ git+https://github.com/idss-mesa/mesa-ducklake@${MESA_DUCKLAKE_REF}" \
+      "mesa-mcp[ducklake] @ git+https://github.com/idss-mesa/mesa-mcp@${MESA_MCP_REF}" && \
+    /opt/mesa/bin/python -c "import sys, duckdb; from importlib.metadata import version as v; assert sys.version_info >= (3, 11), sys.version; assert duckdb.__version__.startswith('2.'), duckdb.__version__; print('mesa-mcp', v('mesa-mcp'), 'mesa-ducklake', v('mesa-ducklake'), 'duckdb', duckdb.__version__)" && \
     ln -s /opt/mesa/bin/mesa-ducklake /usr/local/bin/
 
 # FUSE for non-root users and the /osn mount root
