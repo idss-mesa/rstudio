@@ -37,7 +37,7 @@ These live in the Discovery Environment, not in this repo, and must match the im
 | Setting | Value |
 | --- | --- |
 | DE app | **MESA RStudio Geospatial** (`01667dd8-b936-11f1-b923-008cfa5ae3e1`) |
-| DE tool (version `1.0.0`) | `mesa-rstudio` (`e2dbec04-b935-11f1-ac49-008cfa5ae3e1`) |
+| DE tool (version `1.1.0`) | `mesa-rstudio` (`e2dbec04-b935-11f1-ac49-008cfa5ae3e1`) |
 | Image | `harbor.cyverse.org/vice/mesa-rstudio:latest` |
 | Type | interactive (`interactive: true`) |
 | Network mode | `bridge` (Terrain's default `none` gives an analysis that runs but never serves) |
@@ -51,6 +51,8 @@ These live in the Discovery Environment, not in this repo, and must match the im
 | Memory limit | 16 GiB (DE user cap; upstream 250 GiB) |
 
 Port **80** is nginx, which proxies to rserver on `127.0.0.1:8787`. Registering 8787 would bypass nginx and fail.
+
+An older `mesa-rstudio` tool on the same image (`ff0aa2b2-b92b-11f1-8020-008cfa5ae3e1`, version `latest`) is not used by either MESA app.
 
 ## Sign in to CyVerse
 
@@ -184,7 +186,8 @@ A separate tool; the DE app is a copy of **MESA RStudio Geospatial** pointing at
 
 | Setting | Value |
 | --- | --- |
-| DE tool (version `1.0.0`) | `mesa-rstudio-gpu` |
+| DE app | **MESA RStudio Geospatial (GPU)** (`6ddb8168-ba88-11f1-b17c-008cfa5ae3e1`, private) |
+| DE tool (version `1.1.0`) | `mesa-rstudio-gpu` (`6cd1f798-ba88-11f1-82af-008cfa5ae3e1`) |
 | Image | `harbor.cyverse.org/vice/mesa-rstudio:gpu` |
 | GPUs | `min_gpus` = `max_gpus` = **1** (with `min_gpus` unset a launch gets no GPU) |
 | GPU model | `gpu_models: ["NVIDIA-A16"]` (must be listed by `GET /terrain/tools/gpu-models`) |
