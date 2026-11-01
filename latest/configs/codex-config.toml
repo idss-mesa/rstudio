@@ -36,5 +36,5 @@ url = "https://de.cyverse.org/formation/mcp"
 oauth_resource = "https://de.cyverse.org/formation/mcp"
 
 [mcp_servers.filesystem]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/home/rstudio", "/home/rstudio/data-store"]
+command = "/home/rstudio/.npm-global/bin/mcp-server-filesystem"
+args = ["/home/rstudio", "/home/rstudio/data-store"]
