@@ -105,7 +105,7 @@ It validates the key against `/v1/models`, lists your models, and writes `~/.con
 | --- | --- |
 | **R deep learning** | [torch](https://torch.mlverse.org) 0.17.0, mlverse `cu128` build (bundled CUDA 12.8 runtime + cuDNN 9; no system CUDA), luz, torchvision, tabnet, brulee, tidymodels |
 | **GPU xgboost** | xgboost 3.3.0.1 R GPU build (`device = "cuda"`); lightgbm (CPU) |
-| **Local LLMs** | [Ollama](https://ollama.com) 0.34.4 on `127.0.0.1:11434` (starts with the container, 32k context), `ollamar`, `ellmer`, `mall`; `ollama-setup` wires it to the agent CLIs |
+| **Local LLMs** | [Ollama](https://ollama.com) 0.40.11 on `127.0.0.1:11434` (starts with the container, 32k context), `ollamar`, `ellmer`, `mall`; `ollama-setup` wires it to the agent CLIs |
 | **Python from R** | reticulate, keras3, tensorflow (R packages). The default build bakes no Python env: the first `library(keras3)` has reticulate download TensorFlow 2.21 and its CUDA wheels (~13 GB, about a minute, into `~/.cache/R/reticulate`, per user and gone when the analysis ends), and an `Rprofile.site` hook puts that env on the GPU. The optional build `WITH_PYTHON_GPU=1` bakes `/opt/r-python` (PyTorch 2.14 cu126 + TensorFlow 2.21 / Keras 3) as `RETICULATE_PYTHON` (+~9 GB), so nothing is downloaded |
 | **GPU tooling** | `mesa-gpu-check`, `nvtop`, `nvitop`, `cuda-probe`, CUDA 13 forward-compat driver (`cuda-compat-13-4`, from `CUDA_COMPAT_VERSION`), GPU panel on the terminal landing screen |
 
@@ -158,7 +158,7 @@ One 16 GB GPU (A16 / T4) fits qwen3.5:9b (default), gpt-oss:20b, gemma4:12b or q
 
 - The image never ships an NVIDIA driver: the NVIDIA runtime injects the host's. R torch (CUDA 12.8) and xgboost (CUDA 12.9) run on any R525+ driver through CUDA minor-version compatibility.
 - An apt pin (`/etc/apt/preferences.d/mesa-no-nvidia-driver`, from [`gpu/common/apt-no-nvidia-driver.pref`](gpu/common/apt-no-nvidia-driver.pref)) makes apt refuse NVIDIA driver packages (`nvidia-driver-*`, `libnvidia-*`, `cuda-drivers`): installed in a session they would shadow the injected host driver and break `nvidia-smi`/NVML. CUDA toolkit packages (`cuda-toolkit-12-x`, `libcudnn9-*`) still install. To install a driver package on purpose, `sudo rm` that file first.
-- **Ollama 0.34.4** needs R550+ for its CUDA 12 runner and R580+ for CUDA 13; other CUDA 13 software needs R580+. On older drivers (e.g. R535) on data-center GPUs (A16, A100, T4, ...), the image's CUDA 13 forward-compat driver is switched on automatically — only when the host's CUDA API is below 13 and the compat driver works (`/etc/profile.d/mesa-gpu-env.sh`, also sourced from `/etc/bash.bashrc` for `docker exec`/`kubectl exec` shells, and the `ollama` wrapper). R sessions keep the host driver. `MESA_DISABLE_CUDA_COMPAT=1` opts out.
+- **Ollama 0.40.11** needs R550+ for its CUDA 12 runner and R580+ for CUDA 13; other CUDA 13 software needs R580+. On older drivers (e.g. R535) on data-center GPUs (A16, A100, T4, ...), the image's CUDA 13 forward-compat driver is switched on automatically — only when the host's CUDA API is below 13 and the compat driver works (`/etc/profile.d/mesa-gpu-env.sh`, also sourced from `/etc/bash.bashrc` for `docker exec`/`kubectl exec` shells, and the `ollama` wrapper). R sessions keep the host driver. `MESA_DISABLE_CUDA_COMPAT=1` opts out.
 - `MESA_OLLAMA_AUTOSTART=0` (no Ollama server at start) and `MESA_DISABLE_CUDA_COMPAT=1` are read once at container start by the entrypoint, before any `~/.Renviron` or other dotfile, so setting them there has no effect. Set them as container environment variables instead: on VICE an *Environment Variable* parameter on the DE app, locally `docker run -e`.
 - RStudio sessions do not inherit Docker `ENV` (`run.sh` starts supervisord through `sudo`), so the Ollama settings and `MESA_CUDA_COMPAT_DIR` (and `RETICULATE_PYTHON` in `WITH_PYTHON_GPU=1` builds) are also written to `Renviron.site`.
 
@@ -240,3 +240,31 @@ Makefile                        local build/push/run (+ pull-base / build-gpu / 
 
 - [CyVerse VICE apps](https://learning.cyverse.org/vice/) · [GoCommands](https://learning.cyverse.org/ds/gocommands/) · [AI Verde](https://aiverde-docs.cyverse.ai/) · [MESA docs](https://idss-mesa.github.io/docs/)
 - Upstream: [cyverse-vice/rstudio-geospatial](https://github.com/cyverse-vice/rstudio-geospatial) · MESA org: <https://github.com/idss-mesa>
+
+## AI Sandbox variants (`:sandbox`, `:gpu-sandbox`)
+
+The `:latest` and `:gpu` images keep passwordless `sudo` on purpose: VICE lets a
+human modify the environment they are working in. The **AI Sandbox** variants
+(`sandbox/Dockerfile`) are the same images with every path from UID 1000 to root
+removed, for sessions driven by AI agents (Claude Code, Codex, OpenCode, Goose,
+Antigravity):
+
+- `sudo` purged (package, `/etc/sudoers*`, group memberships); `su`/`pkexec` cannot switch user
+- no setuid/setgid binaries and no file capabilities anywhere in the image
+- every account password locked, `/etc/passwd` and `/etc/group` not group-writable, no world-writable system files
+- `MESA_SANDBOX=1` in every shell and a marker at `/etc/mesa/sandbox`
+- RStudio: nginx listens on **8080** (no `CAP_NET_BIND_SERVICE`) and supervisord/nginx/rserver all run as `rstudio`, with runtime state under `/tmp`
+
+Build, test and push (the sandbox layers on the **published** base, so pull or
+build `:latest`/`:gpu` first):
+
+```bash
+make build-sandbox test-sandbox push-sandbox             # :sandbox      <- :latest
+make build-gpu-sandbox test-gpu-sandbox push-gpu-sandbox # :gpu-sandbox  <- :gpu
+```
+
+`sandbox/test-sandbox.sh` starts the image as VICE does (UID 1000) and fails if
+`sudo`, a setuid file, a file capability, a root process or a writable `/etc`
+is found, or if the app does not answer. `harbor-sandbox.yml` is the manual
+GitHub workflow equivalent. Register each sandbox tag as its own DE tool
+(same spec as the base tool, but `container_port` 8080 instead of 80).
