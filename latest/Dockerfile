@@ -97,6 +97,16 @@ RUN /usr/bin/python3 -m venv /opt/mesa && \
     /opt/mesa/bin/python -c "import sys, duckdb; from importlib.metadata import version as v; assert sys.version_info >= (3, 11), sys.version; assert duckdb.__version__.startswith('2.'), duckdb.__version__; print('mesa-mcp', v('mesa-mcp'), 'mesa-ducklake', v('mesa-ducklake'), 'duckdb', duckdb.__version__)" && \
     ln -s /opt/mesa/bin/mesa-ducklake /usr/local/bin/
 
+# DuckDB 2.0 for users: the `duckdb` CLI on PATH and the R duckdb package (Rocker ships 1.x).
+# Same major as /opt/mesa, so catalogs mesa-ducklake writes (DuckDB 2-only)
+# open here too.
+ARG DUCKDB_VERSION=2.0.0
+RUN DUCKDB_ARCH=$([ "$TARGETARCH" = "arm64" ] && echo arm64 || echo amd64) && \
+    curl -fsSL "https://github.com/duckdb/duckdb/releases/download/v${DUCKDB_VERSION}/duckdb-cli-linux-${DUCKDB_ARCH}.tar.gz" | \
+        tar -xz -C /usr/local/bin duckdb && \
+    duckdb --version | grep "^v${DUCKDB_VERSION} " && \
+    Rscript -e 'install.packages("duckdb"); v <- as.character(packageVersion("duckdb")); cat("R duckdb", v, "\n"); stopifnot(startsWith(v, "2."))'
+
 # FUSE for non-root users and the /osn mount root
 RUN echo "user_allow_other" >> /etc/fuse.conf && \
     chmod 644 /etc/fuse.conf && \
