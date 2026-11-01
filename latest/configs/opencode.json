@@ -47,7 +47,7 @@
     },
     "filesystem": {
       "type": "local",
-      "command": ["npx", "-y", "@modelcontextprotocol/server-filesystem", "/home/rstudio", "/home/rstudio/data-store"],
+      "command": ["/home/rstudio/.npm-global/bin/mcp-server-filesystem", "/home/rstudio", "/home/rstudio/data-store"],
       "enabled": true
     }
   }

@@ -28,8 +28,8 @@
     },
     "filesystem": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/rstudio", "/home/rstudio/data-store"],
+      "command": "/home/rstudio/.npm-global/bin/mcp-server-filesystem",
+      "args": ["/home/rstudio", "/home/rstudio/data-store"],
       "env": {}
     }
   }

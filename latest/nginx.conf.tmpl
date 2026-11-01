@@ -22,7 +22,9 @@ http {
 
     location / {
       proxy_pass http://localhost:8787;
-      proxy_redirect ~https?://localhost:\d+(/.*)$ {{.Env.REDIRECT_URL}}/$1;
+      # $1 starts with "/"; strip a trailing slash from REDIRECT_URL (the image
+      # default has one, VICE's value does not) so the redirect never has "//"
+      proxy_redirect ~https?://localhost:\d+(/.*)$ {{ .Env.REDIRECT_URL | strings.TrimSuffix "/" }}$1;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection $connection_upgrade;
