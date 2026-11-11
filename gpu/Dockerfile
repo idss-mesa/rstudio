@@ -126,8 +126,8 @@ RUN --mount=type=bind,source=Rprofile-gpu.R,target=/tmp/Rprofile-gpu.R \
 # Ollama (pinned, sha256-checked; never install.sh, which can bake cuda-drivers
 # into the image). The wrapper at /usr/local/bin/ollama re-runs the CUDA
 # forward-compat probe for `ollama serve`.
-ARG OLLAMA_VERSION=0.34.4
-ARG OLLAMA_SHA256=c238986e61d40c0cc5f4a9b9e40b9eea104350b77efa34741fc134e105cb9533
+ARG OLLAMA_VERSION=0.40.11
+ARG OLLAMA_SHA256=7bedab90dd122661be78798e9f0edf37fccf0cccf2699d2c58ea1a3afdc04b6d
 RUN curl -fsSL -o /tmp/ollama.tar.zst "https://github.com/ollama/ollama/releases/download/v${OLLAMA_VERSION}/ollama-linux-amd64.tar.zst" && \
     echo "${OLLAMA_SHA256}  /tmp/ollama.tar.zst" | sha256sum -c - && \
     zstd -dc /tmp/ollama.tar.zst | tar -xf - -C /usr/local && rm -f /tmp/ollama.tar.zst && \
